@@ -59,13 +59,13 @@
 				<small>Every game we've played</small>
 			</span>
 		</a>
-		<div class="tile soon">
+		<a class="tile" href="/stats">
 			<span class="emoji" aria-hidden="true">📊</span>
 			<span>
 				<strong>Stats</strong>
-				<small>Coming soon</small>
+				<small>Who wins, what we play, and when</small>
 			</span>
-		</div>
+		</a>
 	</nav>
 
 	<section class="group">
@@ -73,8 +73,10 @@
 		<ul>
 			{#each data.players as player (player.id)}
 				<li>
-					<Avatar name={player.name} color={player.color} src={player.avatarUrl} size={44} />
-					<span>{player.name}</span>
+					<a href="/stats/players/{player.id}">
+						<Avatar name={player.name} color={player.color} src={player.avatarUrl} size={44} />
+						<span>{player.name}</span>
+					</a>
 				</li>
 			{/each}
 		</ul>
@@ -133,9 +135,6 @@
 	.primary {
 		outline: 2px solid var(--accent);
 	}
-	.soon {
-		opacity: 0.5;
-	}
 	.emoji {
 		font-size: 2rem;
 	}
@@ -155,14 +154,18 @@
 		list-style: none;
 	}
 	.group li {
+		width: 64px;
+	}
+	.group a {
 		display: grid;
 		justify-items: center;
 		gap: 4px;
-		width: 64px;
+		color: inherit;
 		font-size: 0.8rem;
 		text-align: center;
+		text-decoration: none;
 	}
-	.group li span {
+	.group a span {
 		max-width: 100%;
 		overflow: hidden;
 		text-overflow: ellipsis;

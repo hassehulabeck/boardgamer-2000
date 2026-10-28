@@ -18,6 +18,7 @@
 			Open on BoardGameGeek ↗
 		</a>
 	{/if}
+	<a class="button secondary stats" href="/stats/games/{data.game.id}">📊 Stats</a>
 
 	<h2>Edit</h2>
 	{#key data.game.id}
@@ -46,6 +47,9 @@
 	.bgg {
 		color: var(--accent);
 		font-weight: 600;
+	}
+	.stats {
+		margin-top: 16px;
 	}
 	h2 {
 		margin: 28px 0 16px;

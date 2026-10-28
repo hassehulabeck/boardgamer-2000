@@ -107,11 +107,14 @@ Times are stored in UTC (`timestamptz`); weekday/date grouping uses `Europe/Stoc
 - [x] Drafts deleted after 1 h; running games flagged "never finished" after 4 h
 - [x] Game list sorted by most played; games with sessions can't be deleted
 
-### Phase 4 — Stats
-- [ ] Total: sessions, hours played, most-played games
-- [ ] By game: plays, average length, top winners, starting-player advantage
-- [ ] By profile: win rate, favorite games, streaks, head-to-head
-- [ ] By weekday: busiest days and what gets played
+### Phase 4 — Stats ✅
+- [x] Total (`/stats`): games played, hours at the table, game days, most-played games,
+      most wins
+- [x] By game (`/stats/games/[id]`): plays, average/shortest/longest, last played, top
+      winners, high score, starting-player advantage (vs. chance, verdict only from 5 games)
+- [x] By profile (`/stats/players/[id]`): plays, wins, win rate, win streak (current/best),
+      hours, times first, favorite day, favorite games, head-to-head
+- [x] By weekday (on `/stats`): games per weekday and the top games each day
 
 ### Phase 5 — "Want to play today"
 - [ ] Pick a lunch slot (11:30, 11:45, 12:00, 12:15, 12:30); list grouped by time; resets daily
@@ -131,6 +134,12 @@ Phase 5 is independent of phases 3–4 and can be moved earlier.
   for co-op losses.
 - 2026-10-28: Lunch slots are 15 minutes: 11:30, 11:45, 12:00, 12:15, 12:30.
 - 2026-10-28: Servers moved to Railway's Europe region (Netherlands) for speed from Gothenburg.
+
+- 2026-10-28: Stats are computed in memory from all finished sessions (small group, small data).
+  Only finished sessions count; "nobody won" counts as a play with no winner; shared wins count
+  as a win for each winner.
+- 2026-10-28: Bug fixed: profile photo and game picture forms lacked
+  `enctype="multipart/form-data"`, so `use:enhance` sent them URL-encoded and the image was lost.
 
 ## Open questions
 None right now.

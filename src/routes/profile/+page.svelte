@@ -51,6 +51,7 @@
 	<form
 		method="post"
 		action="?/save"
+		enctype="multipart/form-data"
 		use:enhance={({ formData }) => {
 			busy = true;
 			if (photo) formData.set('avatar', photo.blob, 'avatar.jpg');

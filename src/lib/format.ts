@@ -91,3 +91,24 @@ function zoneOffsetMs(date: Date): number {
 	const wall = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
 	return wall - Math.floor(date.getTime() / 1000) * 1000;
 }
+
+const weekdayFormat = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, weekday: 'short' });
+
+/** Monday first, as in Sweden. */
+export const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+/** 0 = Monday … 6 = Sunday, in Swedish time. */
+export function weekdayIndex(date: Date): number {
+	return WEEKDAYS.indexOf(weekdayFormat.format(date));
+}
+
+/** "0.8 h", "12 h": one decimal for short totals, whole hours once it adds up. */
+export function formatHours(ms: number): string {
+	const hours = ms / 3_600_000;
+	return `${hours < 10 ? hours.toFixed(1) : Math.round(hours)} h`;
+}
+
+/** "42%" */
+export function formatPercent(part: number, total: number): string {
+	return total === 0 ? '–' : `${Math.round((part / total) * 100)}%`;
+}

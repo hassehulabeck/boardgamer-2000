@@ -46,6 +46,7 @@
 <form
 	method="post"
 	{action}
+	enctype="multipart/form-data"
 	use:enhance={({ formData }) => {
 		busy = true;
 		if (picture) formData.set('image', picture.blob, 'game.jpg');
