@@ -27,7 +27,7 @@
 		<p class="muted">No finished games yet. Play one and the numbers show up here.</p>
 	{:else}
 		<div class="tiles">
-			<StatTile value={stats.sessions} label={stats.sessions === 1 ? 'game played' : 'games played'} />
+			<StatTile value={stats.sessions} label={stats.sessions === 1 ? 'session' : 'sessions'} />
 			<StatTile value={formatHours(stats.totalMs)} label="at the table" />
 			<StatTile value={stats.days} label={stats.days === 1 ? 'game day' : 'game days'} />
 		</div>
@@ -37,6 +37,14 @@
 			<span>
 				<strong>{data.year} Wrapped</strong>
 				<small>The year in games, for the group and for you</small>
+			</span>
+		</a>
+
+		<a class="wrapped compare" href="/stats/compare">
+			<span aria-hidden="true">⚖️</span>
+			<span>
+				<strong>Compare players</strong>
+				<small>Who wins when these people play together?</small>
 			</span>
 		</a>
 
@@ -139,6 +147,10 @@
 	.wrapped span:last-child {
 		display: grid;
 		font-size: 1rem;
+	}
+	.compare {
+		margin-top: 8px;
+		background: var(--surface);
 	}
 	.wrapped small {
 		color: var(--muted);

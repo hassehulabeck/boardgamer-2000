@@ -241,7 +241,7 @@
 			{/if}
 
 			<button type="button" class="button secondary" onclick={() => (editing = true)}>Edit result</button>
-			<form method="post" action="?/delete" use:enhance={confirmDelete('Delete this game from the history?')} class="danger-zone">
+			<form method="post" action="?/delete" use:enhance={confirmDelete('Delete this session?')} class="danger-zone">
 				<button class="button danger">Delete session</button>
 			</form>
 		{/if}

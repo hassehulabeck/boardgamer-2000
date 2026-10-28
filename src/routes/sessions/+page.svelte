@@ -27,7 +27,7 @@
 	<a class="back" href="/" aria-label="Back to start">←</a>
 	<h1>Sessions</h1>
 
-	<a class="button new" href="/sessions/new">+ New game</a>
+	<a class="button new" href="/sessions/new">+ New session</a>
 
 	{#if data.active.length > 0}
 		<section>
@@ -51,7 +51,7 @@
 		</section>
 	{:else}
 		{#if data.active.length === 0}
-			<p class="muted empty">No games logged yet. Start one!</p>
+			<p class="muted empty">No sessions yet. Start one!</p>
 		{/if}
 	{/each}
 </main>

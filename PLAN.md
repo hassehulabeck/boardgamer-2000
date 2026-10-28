@@ -136,7 +136,11 @@ Phase 5 is independent of phases 3–4 and can be moved earlier.
 - [x] Wrapped (`/stats/wrapped/[year]`): story-style cards for the group (totals, game of the
       year, favorite day, marathon, champion) and for you (games, rank, your game, sidekick,
       nemesis). Linked from `/stats`.
+- [x] Compare players (`/stats/compare?playerId=…`): pick 2–8 players, "all sessions with
+      them" or "only these players"; who wins, who starts, what they play and who leads each
+      game. "Compare with you" on player pages.
 - [ ] Register the app with BGG and set `BGG_TOKEN` on Railway (Hans)
+- [ ] Set the production push keys (`VAPID_*`) on Railway (Hans)
 
 ---
 
@@ -157,6 +161,9 @@ Phase 5 is independent of phases 3–4 and can be moved earlier.
   JSON API. Source is public at github.com/hassehulabeck/boardgamer-2000 for BGG's review.
 - 2026-10-28: Push rules: "someone joined your slot" + "game on" at 3 people. The "already
   announced" memory is in-process, so a redeploy can repeat a "game on" once.
+
+- 2026-10-28: Wording: a *game* is a title in the library, a *session* is one time it was
+  played. Start page: "New session", "Game library", "Sessions".
 
 ## Open questions
 None right now.

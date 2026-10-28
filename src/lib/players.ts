@@ -18,3 +18,6 @@ export function initials(name: string): string {
 	const letters = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : name.slice(0, 2);
 	return letters.toUpperCase();
 }
+
+/** Most players the compare page takes; more than that is the whole group. */
+export const COMPARE_MAX_PLAYERS = 8;

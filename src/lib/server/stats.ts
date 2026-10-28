@@ -307,3 +307,53 @@ export async function wrappedStats(year: number, meId: string | null) {
 		me: mine
 	};
 }
+
+// ---------------------------------------------------------------------------------------------
+// Compare: a set of players, and the sessions they played together
+
+/**
+ * Sessions where all these players took part (and, with `exact`, nobody else did), with
+ * each one's wins. Wins by someone outside the group count as "others".
+ */
+export async function compareStats(playerIds: string[], exact: boolean) {
+	const data = await loadData();
+	const chosen = playerIds.map((id) => data.players.get(id)).filter((p) => p !== undefined);
+	const ids = new Set(chosen.map((p) => p.id));
+	const list = data.sessions.filter(
+		(s) =>
+			chosen.every((p) => s.players.some((sp) => sp.id === p.id)) &&
+			(!exact || s.players.length === ids.size)
+	);
+	const won = (s: StatSession, id: string) => s.players.some((p) => p.id === id && p.isWinner);
+
+	const records = chosen
+		.map((player) => ({
+			player,
+			wins: list.filter((s) => won(s, player.id)).length,
+			started: list.filter((s) => s.startingPlayerId === player.id).length
+		}))
+		.sort((a, b) => b.wins - a.wins || a.player.name.localeCompare(b.player.name));
+
+	const games = gameRecords(list).map((record) => {
+		const ofGame = list.filter((s) => s.game.id === record.game.id);
+		const wins = chosen
+			.map((player) => ({ player, wins: ofGame.filter((s) => won(s, player.id)).length }))
+			.sort((a, b) => b.wins - a.wins);
+		// Only name a leader when one person is clearly ahead.
+		const leader = wins[0]?.wins > 0 && wins[0].wins > (wins[1]?.wins ?? 0) ? wins[0] : null;
+		return { ...record, leader };
+	});
+
+	return {
+		players: chosen,
+		sessions: list.length,
+		totalMs: list.reduce((sum, s) => sum + s.lengthMs, 0),
+		records,
+		othersWon: list.filter(
+			(s) => s.players.some((p) => p.isWinner) && !s.players.some((p) => p.isWinner && ids.has(p.id))
+		).length,
+		nobodyWon: list.filter((s) => !s.players.some((p) => p.isWinner)).length,
+		games,
+		lastPlayed: list.at(-1)?.startedAt ?? null
+	};
+}

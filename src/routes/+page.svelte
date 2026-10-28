@@ -45,7 +45,7 @@
 		<a class="tile primary" href="/sessions/new">
 			<span class="emoji" aria-hidden="true">🎲</span>
 			<span>
-				<strong>New game</strong>
+				<strong>New session</strong>
 				<small>Pick a game and who's playing</small>
 			</span>
 		</a>
@@ -59,15 +59,15 @@
 		<a class="tile" href="/games">
 			<span class="emoji" aria-hidden="true">📦</span>
 			<span>
-				<strong>Games</strong>
-				<small>{data.gameCount === 1 ? '1 game' : `${data.gameCount} games`} in the library</small>
+				<strong>Game library</strong>
+				<small>{data.gameCount === 1 ? '1 game' : `${data.gameCount} games`} to choose from</small>
 			</span>
 		</a>
 		<a class="tile" href="/sessions">
 			<span class="emoji" aria-hidden="true">📜</span>
 			<span>
-				<strong>History</strong>
-				<small>Every game we've played</small>
+				<strong>Sessions</strong>
+				<small>Every session we've played</small>
 			</span>
 		</a>
 		<a class="tile" href="/stats">

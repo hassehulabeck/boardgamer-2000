@@ -19,6 +19,7 @@ questions. Tick off checkboxes there when work is done, and add new decisions to
 - `Handle` type comes from `@sveltejs/kit/hooks`.
 - Service worker lives in `src/service-worker/index.ts` with its own `tsconfig.json`; it uses
   `$app/manifest` (`immutable`, `assets`) instead of the removed `$service-worker`.
+- `goto(url, { replace, reset: false })` replaces the old `replaceState` / `keepFocus` / `noScroll`.
 - Remote functions are experimental: use **form actions + `use:enhance`** and `load` functions.
 - Node types are enabled in `tsconfig.json` (`"types": ["$app/types", "node"]`).
 

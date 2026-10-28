@@ -27,6 +27,10 @@
 			<h1>{player.name}</h1>
 			{#if isMe}
 				<a class="muted" href="/profile">Edit profile</a>
+			{:else if data.me}
+				<a class="muted" href="/stats/compare?playerId={data.me.id}&playerId={player.id}">
+					Compare with you
+				</a>
 			{/if}
 		</div>
 	</header>

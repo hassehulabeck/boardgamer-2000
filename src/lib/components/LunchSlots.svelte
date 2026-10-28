@@ -45,7 +45,7 @@
 				</form>
 				{#if players.length >= 2}
 					<a class="start" href="/sessions/new?players={players.map((p) => p.id).join(',')}">
-						Start a game with {players.length === 2 ? 'both' : `these ${players.length}`} →
+						Start a session with {players.length === 2 ? 'both' : `these ${players.length}`} →
 					</a>
 				{/if}
 			</li>

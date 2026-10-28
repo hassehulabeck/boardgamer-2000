@@ -6,12 +6,12 @@
 </script>
 
 <svelte:head>
-	<title>Games · Boardgamer 2000</title>
+	<title>Game library · Boardgamer 2000</title>
 </svelte:head>
 
 <main class="page">
 	<a class="back" href="/" aria-label="Back to start">←</a>
-	<h1>Games <span class="muted">· {data.games.length}</span></h1>
+	<h1>Game library <span class="muted">· {data.games.length}</span></h1>
 
 	{#if data.games.length === 0}
 		<p class="muted">No games yet. Add the ones you play!</p>

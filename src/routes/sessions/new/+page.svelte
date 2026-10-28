@@ -22,12 +22,12 @@
 </script>
 
 <svelte:head>
-	<title>New game · Boardgamer 2000</title>
+	<title>New session · Boardgamer 2000</title>
 </svelte:head>
 
 <main class="page">
 	<a class="back" href="/" aria-label="Back to start">←</a>
-	<h1>New game</h1>
+	<h1>New session</h1>
 
 	{#if data.games.length === 0}
 		<p class="muted">There are no games in the library yet.</p>
