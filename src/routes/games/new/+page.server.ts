@@ -1,8 +1,11 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { bggEnabled } from '#lib/server/bgg.js';
 import { db, schema } from '#lib/server/db/index.js';
 import { imageChange, readGameForm } from '#lib/server/games.js';
 import { isUniqueViolation } from '#lib/server/players.js';
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
+
+export const load: PageServerLoad = () => ({ bgg: bggEnabled });
 
 export const actions: Actions = {
 	default: async ({ request, locals }) => {

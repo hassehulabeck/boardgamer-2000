@@ -125,10 +125,18 @@ Times are stored in UTC (`timestamptz`); weekday/date grouping uses `Europe/Stoc
 
 Phase 5 is independent of phases 3–4 and can be moved earlier.
 
-### Later ideas
-- Push notifications ("3 people are in at 12:00")
-- Fetch game images from BoardGameGeek automatically
-- Yearly "Wrapped"-style summary
+### Phase 6 — Later ideas ✅
+- [x] Push notifications (Web Push, VAPID): turned on per phone on `/profile` (iPhone: only
+      in the home-screen app). People in a lunch slot hear when someone joins them; everyone
+      else hears "Game on at 12:00" when a slot reaches 3 (once per slot and day). "Send me a
+      test" button.
+- [x] BoardGameGeek lookup on the game form: "Find on BoardGameGeek" searches by title (exact
+      match first, then most rated), picking one fills in the link and the picture (resized on
+      the phone). "Get the picture" when a link is pasted. Needs `BGG_TOKEN`; hidden without.
+- [x] Wrapped (`/stats/wrapped/[year]`): story-style cards for the group (totals, game of the
+      year, favorite day, marathon, champion) and for you (games, rank, your game, sidekick,
+      nemesis). Linked from `/stats`.
+- [ ] Register the app with BGG and set `BGG_TOKEN` on Railway (Hans)
 
 ---
 
@@ -143,6 +151,12 @@ Phase 5 is independent of phases 3–4 and can be moved earlier.
   as a win for each winner.
 - 2026-10-28: Bug fixed: profile photo and game picture forms lacked
   `enctype="multipart/form-data"`, so `use:enhance` sent them URL-encoded and the image was lost.
+
+- 2026-10-28: BGG's XML API needs a registered app token since 2025 (401 without), and its
+  pages are behind Cloudflare. We use the official API with a token rather than BGG's internal
+  JSON API. Source is public at github.com/hassehulabeck/boardgamer-2000 for BGG's review.
+- 2026-10-28: Push rules: "someone joined your slot" + "game on" at 3 people. The "already
+  announced" memory is in-process, so a redeploy can repeat a "game on" once.
 
 ## Open questions
 None right now.

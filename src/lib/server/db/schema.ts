@@ -114,6 +114,21 @@ export const availability = pgTable(
 	(t) => [primaryKey({ columns: [t.day, t.playerId] })]
 );
 
+/** A phone's Web Push subscription. Belongs to the device, so it follows whoever uses it. */
+export const pushSubscriptions = pgTable(
+	'push_subscriptions',
+	{
+		endpoint: text('endpoint').primaryKey(),
+		deviceId: uuid('device_id')
+			.notNull()
+			.references(() => devices.id, { onDelete: 'cascade' }),
+		p256dh: text('p256dh').notNull(),
+		auth: text('auth').notNull(),
+		createdAt: createdAt()
+	},
+	(t) => [index('push_subscriptions_device_idx').on(t.deviceId)]
+);
+
 export type Player = typeof players.$inferSelect;
 export type Device = typeof devices.$inferSelect;
 export type Game = typeof games.$inferSelect;

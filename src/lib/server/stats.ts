@@ -200,7 +200,10 @@ function startingPlayerAdvantage(list: StatSession[]) {
 export type HeadToHead = { opponent: PlayerSummary; together: number; myWins: number; theirWins: number };
 
 export async function playerStats(playerId: string) {
-	const data = await loadData();
+	return summarizePlayer(await loadData(), playerId);
+}
+
+function summarizePlayer(data: StatData, playerId: string) {
 	const player = data.players.get(playerId);
 	if (!player) return null;
 	const list = data.sessions.filter((s) => s.players.some((p) => p.id === playerId));
@@ -246,5 +249,61 @@ export async function playerStats(playerId: string) {
 			(a, b) => b.together - a.together || a.opponent.name.localeCompare(b.opponent.name)
 		),
 		favoriteDay: busiest ? WEEKDAYS[weekdayIndex(busiest.item.startedAt)] : null
+	};
+}
+
+// ---------------------------------------------------------------------------------------------
+// Wrapped: one year, for the group and for you
+
+/** Calendar year in Swedish time, so New Year's Eve games land in the right year. */
+const yearOf = (date: Date) => Number(dayKey(date).slice(0, 4));
+
+export async function wrappedStats(year: number, meId: string | null) {
+	const all = await loadData();
+	const years = [...new Set(all.sessions.map((s) => yearOf(s.startedAt)))].sort();
+	const data = { ...all, sessions: all.sessions.filter((s) => yearOf(s.startedAt) === year) };
+	const list = data.sessions;
+	if (list.length === 0) return { year, years, empty: true } as const;
+
+	const players = playerRecords(list, data.players);
+	const mostActive = [...players].sort((a, b) => b.plays - a.plays);
+	const biggestDay = tally(list, (s) => dayKey(s.startedAt))[0];
+	const busiestWeekday = tally(list, (s) => String(weekdayIndex(s.startedAt)))[0];
+	const longest = list.reduce((a, b) => (b.lengthMs > a.lengthMs ? b : a));
+
+	const me = meId ? summarizePlayer(data, meId) : null;
+	const mine =
+		me && me.plays > 0
+			? {
+					plays: me.plays,
+					wins: me.wins,
+					totalMs: me.totalMs,
+					rank: mostActive.findIndex((r) => r.player.id === meId) + 1,
+					bestStreak: me.streaks.best,
+					topGame: me.favorites[0],
+					sidekick: me.headToHead[0] ?? null,
+					// The one who beat you most often, counting only games you both played.
+					nemesis:
+						me.headToHead
+							.filter((h) => h.theirWins > h.myWins)
+							.sort((a, b) => b.theirWins - b.myWins - (a.theirWins - a.myWins))[0] ?? null
+				}
+			: null;
+
+	return {
+		year,
+		years,
+		empty: false,
+		sessions: list.length,
+		totalMs: list.reduce((sum, s) => sum + s.lengthMs, 0),
+		days: new Set(list.map((s) => dayKey(s.startedAt))).size,
+		playerCount: players.length,
+		topGames: gameRecords(list).slice(0, 3),
+		champion: players[0],
+		mostActive: mostActive[0],
+		biggestDay: { date: biggestDay.item.startedAt, sessions: biggestDay.count },
+		busiestWeekday: { day: WEEKDAYS[weekdayIndex(busiestWeekday.item.startedAt)], sessions: busiestWeekday.count },
+		longest: { game: longest.game, lengthMs: longest.lengthMs, date: longest.startedAt },
+		me: mine
 	};
 }

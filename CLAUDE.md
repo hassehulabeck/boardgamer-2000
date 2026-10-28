@@ -36,7 +36,10 @@ Copy `.env.example` to `.env` on a fresh checkout.
 
 ## Code layout
 - `src/lib/server/` — server-only: `db/` (schema + client), `auth.ts` (group code, device
-  cookie), `players.ts`, `games.ts`, `sessions.ts` (queries/validation), `images.ts`
+  cookie), `players.ts`, `games.ts`, `sessions.ts` (queries/validation), `images.ts`,
+  `stats.ts` (all stats + Wrapped, computed in memory), `availability.ts` (lunch slots),
+  `push.ts` (Web Push + lunch notification rules), `bgg.ts`/`bggXml.ts` (BoardGameGeek API)
+- `src/routes/api/` — small JSON endpoints called from browser code (push subscribe, BGG)
 - `src/lib/format.ts` — all date/time display in `Europe/Stockholm`, plus `stockholmTime()`
   for turning a Swedish wall-clock time into a Date
 - `src/lib/` — shared: `players.ts` (types, avatar URLs), `colors.ts`, `image.ts` (client-side
@@ -74,7 +77,9 @@ Copy `.env.example` to `.env` on a fresh checkout.
 - The pre-deploy step `npm run db:migrate` is set on the service itself
   (`railway environment edit --json`, `deploy.preDeployCommand` is an array). A `railway.json`
   in the repo is **not** picked up by `railway up`, so don't rely on one.
-- Variables on `web`: `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `GROUP_CODE`.
+- Variables on `web`: `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `GROUP_CODE`, `VAPID_PUBLIC_KEY`,
+  `VAPID_PRIVATE_KEY` (push; never rotate casually, it breaks every subscription), and
+  `BGG_TOKEN` once BGG approves the app. Push and BGG lookup switch themselves off when unset.
 - Postgres has no public URL (private network only). Both services run in
   `europe-west4-drams3a` (Netherlands).
 - One-off production queries: `railway ssh --service web`, pass a small Node script
@@ -90,7 +95,12 @@ Copy `.env.example` to `.env` on a fresh checkout.
   launch the system Chrome (`/Applications/Google Chrome.app/...`) with a 390×844 viewport, and
   add the `bg_device` cookie from a curl cookie jar to get past `/join`. Plain headless Chrome
   can't go below 500px wide.
-- Multi-touch (finger picker) can only be tested on a real phone; ask Hans.
+- The service worker forwards fetches itself, so Playwright's `page.route` mocks don't see them:
+  create the context with `serviceWorkers: 'block'` when mocking.
+- Push can be tested with a headed persistent Chrome context (`permissions: ['notifications']`);
+  read delivered ones via `registration.getNotifications()` in the service worker.
+- Multi-touch (finger picker) and iPhone push can only be tested on a real phone; ask Hans.
 
 ## Git
-The repo is initialized. Commit only when Hans asks.
+Public on GitHub: https://github.com/hassehulabeck/boardgamer-2000 (`origin`, branch `main`).
+Commit and push only when Hans asks. Never commit `.env`.

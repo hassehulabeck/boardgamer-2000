@@ -97,6 +97,8 @@ const weekdayFormat = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, we
 /** Monday first, as in Sweden. */
 export const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+export const WEEKDAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
 /** 0 = Monday … 6 = Sunday, in Swedish time. */
 export function weekdayIndex(date: Date): number {
 	return WEEKDAYS.indexOf(weekdayFormat.format(date));

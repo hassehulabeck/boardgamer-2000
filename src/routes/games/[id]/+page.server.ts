@@ -1,6 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { db, schema } from '#lib/server/db/index.js';
+import { bggEnabled } from '#lib/server/bgg.js';
 import { countSessions, getGame, imageChange, readGameForm } from '#lib/server/games.js';
 import { isUuid } from '#lib/server/images.js';
 import { isUniqueViolation } from '#lib/server/players.js';
@@ -11,7 +12,7 @@ const { games } = schema;
 export const load: PageServerLoad = async ({ params }) => {
 	const game = isUuid(params.id) ? await getGame(params.id) : null;
 	if (!game) error(404, 'Game not found');
-	return { game };
+	return { game, bgg: bggEnabled };
 };
 
 export const actions: Actions = {

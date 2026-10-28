@@ -32,6 +32,14 @@
 			<StatTile value={stats.days} label={stats.days === 1 ? 'game day' : 'game days'} />
 		</div>
 
+		<a class="wrapped" href="/stats/wrapped/{data.year}">
+			<span aria-hidden="true">✨</span>
+			<span>
+				<strong>{data.year} Wrapped</strong>
+				<small>The year in games, for the group and for you</small>
+			</span>
+		</a>
+
 		<section>
 			<h2>Most played</h2>
 			<ul class="rows">
@@ -115,6 +123,25 @@
 	}
 	section {
 		margin-top: 28px;
+	}
+	.wrapped {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		margin-top: 12px;
+		padding: 14px 16px;
+		border-radius: 14px;
+		background: linear-gradient(120deg, color-mix(in srgb, #9b5de5 45%, var(--surface)), var(--surface));
+		color: inherit;
+		font-size: 1.6rem;
+		text-decoration: none;
+	}
+	.wrapped span:last-child {
+		display: grid;
+		font-size: 1rem;
+	}
+	.wrapped small {
+		color: var(--muted);
 	}
 	h2 {
 		margin: 0 0 10px;

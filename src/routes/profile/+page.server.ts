@@ -3,6 +3,7 @@ import { count, eq } from 'drizzle-orm';
 import { linkDevice } from '#lib/server/auth.js';
 import { db, schema } from '#lib/server/db/index.js';
 import { readImage } from '#lib/server/images.js';
+import { vapidPublicKey } from '#lib/server/push.js';
 import { isUniqueViolation, validateColor, validateName } from '#lib/server/players.js';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -14,7 +15,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		.select({ phones: count() })
 		.from(devices)
 		.where(eq(devices.playerId, locals.player.id));
-	return { phones, isNew: url.searchParams.has('new') };
+	return { phones, isNew: url.searchParams.has('new'), pushKey: vapidPublicKey };
 };
 
 export const actions: Actions = {

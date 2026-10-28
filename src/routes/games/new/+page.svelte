@@ -2,7 +2,7 @@
 	import GameForm from '#lib/components/GameForm.svelte';
 	import type { PageProps } from './$types';
 
-	let { form }: PageProps = $props();
+	let { data, form }: PageProps = $props();
 </script>
 
 <svelte:head>
@@ -12,5 +12,5 @@
 <main class="page">
 	<a class="back" href="/games" aria-label="Back to games">←</a>
 	<h1>Add game</h1>
-	<GameForm action="" error={form?.error} submitLabel="Add game" />
+	<GameForm action="" error={form?.error} submitLabel="Add game" bgg={data.bgg} />
 </main>

@@ -53,3 +53,35 @@ sw.addEventListener('fetch', (event) => {
 		})()
 	);
 });
+
+// Push notifications, e.g. "Game on at 12:00". The server sends { title, body, url, tag }.
+sw.addEventListener('push', (event) => {
+	const data = event.data?.json() ?? {};
+	event.waitUntil(
+		sw.registration.showNotification(data.title ?? 'Boardgamer 2000', {
+			body: data.body,
+			// Same tag replaces the older notification, so one slot never stacks up pings.
+			tag: data.tag,
+			icon: '/icon-192.png',
+			badge: '/icon-192.png',
+			data: { url: data.url ?? '/' }
+		})
+	);
+});
+
+sw.addEventListener('notificationclick', (event) => {
+	event.notification.close();
+	const url = new URL(event.notification.data?.url ?? '/', sw.location.origin).href;
+	event.waitUntil(
+		(async () => {
+			const windows = await sw.clients.matchAll({ type: 'window', includeUncontrolled: true });
+			const open = windows.find((w) => new URL(w.url).origin === sw.location.origin);
+			if (open) {
+				await open.focus();
+				await open.navigate(url);
+			} else {
+				await sw.clients.openWindow(url);
+			}
+		})()
+	);
+});

@@ -29,6 +29,13 @@
       "when": 1793187790346,
       "tag": "0003_availability",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793189326931,
+      "tag": "0004_push_subscriptions",
+      "breakpoints": true
     }
   ]
 }

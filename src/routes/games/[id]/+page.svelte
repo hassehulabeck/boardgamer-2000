@@ -22,7 +22,7 @@
 
 	<h2>Edit</h2>
 	{#key data.game.id}
-		<GameForm game={data.game} action="?/save" error={form?.error} submitLabel="Save" />
+		<GameForm game={data.game} action="?/save" error={form?.error} submitLabel="Save" bgg={data.bgg} />
 	{/key}
 	{#if form?.saved}
 		<p class="saved">Saved ✓</p>

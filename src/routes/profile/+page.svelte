@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import Avatar from '#lib/components/Avatar.svelte';
 	import ColorPicker from '#lib/components/ColorPicker.svelte';
+	import PushToggle from '#lib/components/PushToggle.svelte';
 	import { resizeToSquareJpeg } from '#lib/image.js';
 	import { NAME_MAX_LENGTH } from '#lib/players.js';
 	import type { PageProps } from './$types';
@@ -105,6 +106,13 @@
 		<button class="button" disabled={busy || !name.trim()}>Save</button>
 	</form>
 
+	{#if data.pushKey}
+		<section class="phone">
+			<h2>Notifications</h2>
+			<PushToggle publicKey={data.pushKey} />
+		</section>
+	{/if}
+
 	<section class="phone">
 		<h2>This phone</h2>
 		<p class="muted">
@@ -164,7 +172,7 @@
 		margin-top: 48px;
 	}
 	.phone h2 {
-		margin: 0 0 4px;
+		margin: 0 0 8px;
 		font-size: 1.2rem;
 	}
 	.phone form {
