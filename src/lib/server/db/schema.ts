@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
 	boolean,
 	customType,
+	date,
 	index,
 	integer,
 	pgTable,
@@ -97,6 +98,20 @@ export const sessionPlayers = pgTable(
 		isWinner: boolean('is_winner').notNull().default(false)
 	},
 	(t) => [primaryKey({ columns: [t.sessionId, t.playerId] }), index('session_players_player_idx').on(t.playerId)]
+);
+
+/** "Want to play today": one lunch slot per person per day. Old days are simply ignored. */
+export const availability = pgTable(
+	'availability',
+	{
+		day: date('day', { mode: 'string' }).notNull(),
+		playerId: uuid('player_id')
+			.notNull()
+			.references(() => players.id, { onDelete: 'cascade' }),
+		slot: text('slot').notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(t) => [primaryKey({ columns: [t.day, t.playerId] })]
 );
 
 export type Player = typeof players.$inferSelect;

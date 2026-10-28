@@ -116,9 +116,12 @@ Times are stored in UTC (`timestamptz`); weekday/date grouping uses `Europe/Stoc
       hours, times first, favorite day, favorite games, head-to-head
 - [x] By weekday (on `/stats`): games per weekday and the top games each day
 
-### Phase 5 — "Want to play today"
-- [ ] Pick a lunch slot (11:30, 11:45, 12:00, 12:15, 12:30); list grouped by time; resets daily
-- [ ] "Start session with these people" from a time slot
+### Phase 5 — "Want to play today" ✅
+- [x] "Lunch today" on the start page: tap a slot (11:30–12:30) to join, tap again to leave,
+      tap another to move; one slot per person per day (`availability` table, keyed by the
+      Swedish date, so it resets at midnight)
+- [x] "Start a game with these N" from any slot with 2+ people → `/sessions/new?players=…`
+- [x] Start page refreshes when the app comes back to the foreground
 
 Phase 5 is independent of phases 3–4 and can be moved earlier.
 

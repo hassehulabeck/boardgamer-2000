@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
 	import GameSelect from '#lib/components/GameSelect.svelte';
 	import PlayerSelect from '#lib/components/PlayerSelect.svelte';
 	import type { PageProps } from './$types';
@@ -7,9 +8,17 @@
 	let { data, form }: PageProps = $props();
 
 	let gameId = $state('');
-	// svelte-ignore state_referenced_locally -- you're probably playing yourself
-	let playerIds = $state<string[]>(data.me ? [data.me.id] : []);
+	// svelte-ignore state_referenced_locally -- a lunch slot passes its people; else it's probably you
+	let playerIds = $state<string[]>(initialPlayers());
 	let busy = $state(false);
+
+	/** `?players=a,b,c` from a lunch slot, or just you. */
+	function initialPlayers(): string[] {
+		const wanted = page.url.searchParams.get('players')?.split(',') ?? [];
+		const known = wanted.filter((id) => data.players.some((p) => p.id === id));
+		if (known.length > 0) return known;
+		return data.me ? [data.me.id] : [];
+	}
 </script>
 
 <svelte:head>

@@ -1,10 +1,19 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import Avatar from '#lib/components/Avatar.svelte';
+	import LunchSlots from '#lib/components/LunchSlots.svelte';
 	import SessionCard from '#lib/components/SessionCard.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 </script>
+
+<!-- The home-screen app can sit in the background for hours; show fresh lunch plans on return. -->
+<svelte:document
+	onvisibilitychange={() => {
+		if (document.visibilityState === 'visible') invalidateAll();
+	}}
+/>
 
 <main class="page">
 	<header>
@@ -29,6 +38,8 @@
 			</ul>
 		</section>
 	{/if}
+
+	<LunchSlots slots={data.lunch} meId={data.me?.id ?? null} />
 
 	<nav>
 		<a class="tile primary" href="/sessions/new">
