@@ -140,7 +140,7 @@ Phase 5 is independent of phases 3–4 and can be moved earlier.
       them" or "only these players"; who wins, who starts, what they play and who leads each
       game. "Compare with you" on player pages.
 - [ ] Register the app with BGG and set `BGG_TOKEN` on Railway (Hans)
-- [ ] Set the production push keys (`VAPID_*`) on Railway (Hans)
+- [x] Set the production push keys (`VAPID_*`) on Railway (Hans)
 
 ---
 
