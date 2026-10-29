@@ -10,7 +10,7 @@
 	import Wheel from '#lib/components/Wheel.svelte';
 	import { formatClock, formatDay, formatDuration, formatTime } from '#lib/format.js';
 	import type { PlayerSummary } from '#lib/players.js';
-	import { isUnfinished } from '#lib/sessions.js';
+	import { hasNoTimes, isUnfinished } from '#lib/sessions.js';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -80,6 +80,8 @@
 					Not started yet{session.createdByName ? ` · set up by ${session.createdByName}` : ''}
 				{:else if session.status === 'playing'}
 					Started {formatTime(session.startedAt!)}{starter ? ` · ${starter.name} went first` : ''}
+				{:else if hasNoTimes(session)}
+					{formatDay(session.startedAt!)} · time not recorded
 				{:else}
 					{formatDay(session.startedAt!)} · {formatTime(session.startedAt!)}–{formatTime(session.endedAt!)}
 					· {formatDuration(session.endedAt!.getTime() - session.startedAt!.getTime())}

@@ -13,11 +13,13 @@
 	const maxWins = $derived(Math.max(0, ...stats.players.map((p) => p.wins)));
 
 	/** "27–58 min", or the full form once games run past an hour. */
-	const lengthRange = $derived(
-		stats.longestMs < 59.5 * 60_000
-			? `${Math.round(stats.shortestMs / 60_000)}–${formatDuration(stats.longestMs)}`
-			: `${formatDuration(stats.shortestMs)} – ${formatDuration(stats.longestMs)}`
-	);
+	const lengthRange = $derived.by(() => {
+		const { shortestMs, longestMs } = stats;
+		if (shortestMs === null || longestMs === null || stats.timedPlays < 2) return undefined;
+		return longestMs < 59.5 * 60_000
+			? `${Math.round(shortestMs / 60_000)}–${formatDuration(longestMs)}`
+			: `${formatDuration(shortestMs)} – ${formatDuration(longestMs)}`;
+	});
 
 	/** With few games, any difference is just luck, so don't claim one. */
 	const verdict = $derived.by(() => {
@@ -51,9 +53,9 @@
 		<div class="tiles">
 			<StatTile value={stats.plays} label={stats.plays === 1 ? 'play' : 'plays'} />
 			<StatTile
-				value={formatDuration(stats.averageMs)}
+				value={stats.averageMs === null ? '–' : formatDuration(stats.averageMs)}
 				label="on average"
-				note={stats.plays > 1 ? lengthRange : undefined}
+				note={stats.averageMs === null ? 'No times recorded' : lengthRange}
 			/>
 			<StatTile value={formatRelativeDay(stats.lastPlayed!)} label="last played" />
 		</div>

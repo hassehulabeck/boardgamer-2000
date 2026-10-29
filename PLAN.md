@@ -139,6 +139,10 @@ Phase 5 is independent of phases 3–4 and can be moved earlier.
 - [x] Compare players (`/stats/compare?playerId=…`): pick 2–8 players, "all sessions with
       them" or "only these players"; who wins, who starts, what they play and who leads each
       game. "Compare with you" on player pages.
+- [x] Log a past session (`/sessions/past`, linked from Sessions): date, game, players,
+      winner(s) or nobody won. Built for typing in the paper records: date and players are
+      kept between saves, games are alphabetical, and an exact repeat (same day, game and
+      players) asks before saving.
 - [ ] Register the app with BGG and set `BGG_TOKEN` on Railway (Hans)
 - [x] Set the production push keys (`VAPID_*`) on Railway (Hans)
 
@@ -164,6 +168,11 @@ Phase 5 is independent of phases 3–4 and can be moved earlier.
 
 - 2026-10-28: Wording: a *game* is a title in the library, a *session* is one time it was
   played. Start page: "New session", "Game library", "Sessions".
+
+- 2026-10-29: Past sessions have no times: `started_at` is noon (Swedish time) on the day and
+  `ended_at` is null, which for a finished session means "times unknown". They count for plays
+  and wins but not for hours or lengths. Adding both times later turns it into a normal one.
+- 2026-10-29: Dates from another year show the year ("Thu 20 Nov 2025").
 
 ## Open questions
 None right now.

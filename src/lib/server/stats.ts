@@ -14,7 +14,8 @@ type StatSession = {
 	id: string;
 	game: GameSummary;
 	startedAt: Date;
-	lengthMs: number;
+	/** Null for sessions logged afterwards without times. */
+	lengthMs: number | null;
 	startingPlayerId: string | null;
 	players: { id: string; score: number | null; isWinner: boolean }[];
 };
@@ -65,12 +66,22 @@ async function loadData(): Promise<StatData> {
 			id: row.id,
 			game: toGameSummary(row.game),
 			startedAt: row.startedAt!,
-			lengthMs: row.endedAt!.getTime() - row.startedAt!.getTime(),
+			lengthMs: row.endedAt ? row.endedAt.getTime() - row.startedAt!.getTime() : null,
 			startingPlayerId: row.startingPlayerId,
 			players: bySession.get(row.id) ?? []
 		})),
 		players: new Map(everyone.map((p) => [p.id, p]))
 	};
+}
+
+/** Total known playing time; sessions without times add nothing. */
+function totalMs(list: StatSession[]): number {
+	return list.reduce((sum, s) => sum + (s.lengthMs ?? 0), 0);
+}
+
+/** Lengths of the sessions whose times are known. */
+function lengths(list: StatSession[]): number[] {
+	return list.flatMap((s) => (s.lengthMs === null ? [] : [s.lengthMs]));
 }
 
 /** Counts per key, keeping the first value seen for each key. */
@@ -105,14 +116,23 @@ function playerRecords(list: StatSession[], players: StatData['players']): Playe
 	);
 }
 
-export type GameRecord = { game: GameSummary; plays: number; totalMs: number };
+/** `timedPlays` counts only sessions with known times, for averages. */
+export type GameRecord = { game: GameSummary; plays: number; timedPlays: number; totalMs: number };
 
 function gameRecords(list: StatSession[]): GameRecord[] {
 	const records = new Map<string, GameRecord>();
 	for (const session of list) {
-		const record = records.get(session.game.id) ?? { game: session.game, plays: 0, totalMs: 0 };
+		const record = records.get(session.game.id) ?? {
+			game: session.game,
+			plays: 0,
+			timedPlays: 0,
+			totalMs: 0
+		};
 		record.plays++;
-		record.totalMs += session.lengthMs;
+		if (session.lengthMs !== null) {
+			record.timedPlays++;
+			record.totalMs += session.lengthMs;
+		}
 		records.set(session.game.id, record);
 	}
 	return [...records.values()].sort((a, b) => b.plays - a.plays || a.game.title.localeCompare(b.game.title));
@@ -139,7 +159,7 @@ export async function overviewStats() {
 
 	return {
 		sessions: list.length,
-		totalMs: list.reduce((sum, s) => sum + s.lengthMs, 0),
+		totalMs: totalMs(list),
 		days: new Set(list.map((s) => dayKey(s.startedAt))).size,
 		games: gameRecords(list),
 		players: playerRecords(list, players),
@@ -153,6 +173,7 @@ export async function overviewStats() {
 export async function gameStats(gameId: string) {
 	const data = await loadData();
 	const list = data.sessions.filter((s) => s.game.id === gameId);
+	const timed = lengths(list);
 
 	let highScore: { player: PlayerSummary; score: number; date: Date } | null = null;
 	for (const session of list) {
@@ -166,9 +187,11 @@ export async function gameStats(gameId: string) {
 
 	return {
 		plays: list.length,
-		averageMs: list.length ? list.reduce((sum, s) => sum + s.lengthMs, 0) / list.length : 0,
-		shortestMs: list.length ? Math.min(...list.map((s) => s.lengthMs)) : 0,
-		longestMs: list.length ? Math.max(...list.map((s) => s.lengthMs)) : 0,
+		// Null when no session of this game has times yet.
+		averageMs: timed.length ? timed.reduce((a, b) => a + b, 0) / timed.length : null,
+		shortestMs: timed.length ? Math.min(...timed) : null,
+		longestMs: timed.length ? Math.max(...timed) : null,
+		timedPlays: timed.length,
 		lastPlayed: list.at(-1)?.startedAt ?? null,
 		players: playerRecords(list, data.players),
 		highScore,
@@ -241,7 +264,7 @@ function summarizePlayer(data: StatData, playerId: string) {
 		player,
 		plays: list.length,
 		wins: list.filter((s) => won(s)).length,
-		totalMs: list.reduce((sum, s) => sum + s.lengthMs, 0),
+		totalMs: totalMs(list),
 		started: list.filter((s) => s.startingPlayerId === playerId).length,
 		streaks: { current, best },
 		favorites,
@@ -269,7 +292,10 @@ export async function wrappedStats(year: number, meId: string | null) {
 	const mostActive = [...players].sort((a, b) => b.plays - a.plays);
 	const biggestDay = tally(list, (s) => dayKey(s.startedAt))[0];
 	const busiestWeekday = tally(list, (s) => String(weekdayIndex(s.startedAt)))[0];
-	const longest = list.reduce((a, b) => (b.lengthMs > a.lengthMs ? b : a));
+	const longest = list.reduce<StatSession | null>(
+		(a, b) => (b.lengthMs !== null && b.lengthMs > (a?.lengthMs ?? 0) ? b : a),
+		null
+	);
 
 	const me = meId ? summarizePlayer(data, meId) : null;
 	const mine =
@@ -295,7 +321,7 @@ export async function wrappedStats(year: number, meId: string | null) {
 		years,
 		empty: false,
 		sessions: list.length,
-		totalMs: list.reduce((sum, s) => sum + s.lengthMs, 0),
+		totalMs: totalMs(list),
 		days: new Set(list.map((s) => dayKey(s.startedAt))).size,
 		playerCount: players.length,
 		topGames: gameRecords(list).slice(0, 3),
@@ -303,7 +329,7 @@ export async function wrappedStats(year: number, meId: string | null) {
 		mostActive: mostActive[0],
 		biggestDay: { date: biggestDay.item.startedAt, sessions: biggestDay.count },
 		busiestWeekday: { day: WEEKDAYS[weekdayIndex(busiestWeekday.item.startedAt)], sessions: busiestWeekday.count },
-		longest: { game: longest.game, lengthMs: longest.lengthMs, date: longest.startedAt },
+		longest: longest && { game: longest.game, lengthMs: longest.lengthMs!, date: longest.startedAt },
 		me: mine
 	};
 }
@@ -347,7 +373,7 @@ export async function compareStats(playerIds: string[], exact: boolean) {
 	return {
 		players: chosen,
 		sessions: list.length,
-		totalMs: list.reduce((sum, s) => sum + s.lengthMs, 0),
+		totalMs: totalMs(list),
 		records,
 		othersWon: list.filter(
 			(s) => s.players.some((p) => p.isWinner) && !s.players.some((p) => p.isWinner && ids.has(p.id))

@@ -106,12 +106,14 @@
 			{/if}
 		</section>
 
-		<section class="slide" style:--glow="#ff9f1c">
-			<p class="kicker">The marathon</p>
-			<p class="huge">{Math.round(w.longest.lengthMs / 60_000)}</p>
-			<p class="big">minutes</p>
-			<p class="sub">of {w.longest.game.title} on {formatDay(w.longest.date)}. Was anyone late back?</p>
-		</section>
+		{#if w.longest}
+			<section class="slide" style:--glow="#ff9f1c">
+				<p class="kicker">The marathon</p>
+				<p class="huge">{Math.round(w.longest.lengthMs / 60_000)}</p>
+				<p class="big">minutes</p>
+				<p class="sub">of {w.longest.game.title} on {formatDay(w.longest.date)}. Was anyone late back?</p>
+			</section>
+		{/if}
 
 		{#if w.champion && w.champion.wins > 0}
 			{@const champ = w.champion}

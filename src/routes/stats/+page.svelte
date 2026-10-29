@@ -58,7 +58,9 @@
 							title={record.game.title}
 							value={record.plays}
 							bar={{ value: record.plays, max: maxPlays }}
-							note="≈ {formatDuration(record.totalMs / record.plays)} a game"
+							note={record.timedPlays
+								? `≈ ${formatDuration(record.totalMs / record.timedPlays)} a game`
+								: undefined}
 						>
 							{#snippet image()}
 								<GameImage title={record.game.title} src={record.game.imageUrl} size={40} />

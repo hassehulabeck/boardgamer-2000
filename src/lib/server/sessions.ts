@@ -1,9 +1,10 @@
-import { and, desc, eq, gt, inArray, lt, ne, sql, type SQL } from 'drizzle-orm';
+import { and, between, desc, eq, gt, inArray, lt, ne, sql, type SQL } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { dayKey, stockholmTime } from '#lib/format.js';
 import {
 	DRAFT_TTL_MS,
 	DUPLICATE_WINDOW_MS,
+	hasNoTimes,
 	type SessionDetail,
 	type SessionPlayer
 } from '#lib/sessions.js';
@@ -206,7 +207,8 @@ type ResultInput = {
 	scores: Map<string, number | null>;
 	winners: Set<string>;
 	startedAt: Date;
-	endedAt: Date;
+	/** Null keeps a session logged without times that way. */
+	endedAt: Date | null;
 };
 
 /**
@@ -242,9 +244,21 @@ export function readResultForm(
 	}
 
 	const day = dayKey(session.startedAt ?? session.createdAt);
-	const startedAt = stockholmTime(day, String(form.get('start') ?? ''));
-	const endedAt = stockholmTime(day, String(form.get('end') ?? ''));
-	if (!startedAt || !endedAt) return { error: 'Please enter start and end times' };
+	const start = String(form.get('start') ?? '').trim();
+	const end = String(form.get('end') ?? '').trim();
+	// A session typed in from paper may stay without times; filling them in is optional.
+	if (hasNoTimes(session) && !start && !end) {
+		return { scores, winners, startedAt: session.startedAt!, endedAt: null };
+	}
+	const startedAt = stockholmTime(day, start);
+	const endedAt = stockholmTime(day, end);
+	if (!startedAt || !endedAt) {
+		return {
+			error: hasNoTimes(session)
+				? 'Fill in both times, or leave both empty'
+				: 'Please enter start and end times'
+		};
+	}
 	if (endedAt <= startedAt) return { error: 'The end time must be after the start time' };
 	if (endedAt.getTime() - startedAt.getTime() > MAX_LENGTH_MS) {
 		return { error: 'That game seems too long. Check the times.' };
@@ -279,6 +293,75 @@ export async function saveResult(session: SessionDetail, input: ResultInput, by:
 				...(isEdit ? { updatedBy: by } : {})
 			})
 			.where(eq(sessions.id, session.id));
+	});
+}
+
+// ---------------------------------------------------------------------------------------------
+// Logging a past session (e.g. from the paper records)
+
+/** Paper records don't go back further than this; anything earlier is a typo. */
+const EARLIEST_PAST_DAY = '2000-01-01';
+
+type PastInput = { gameId: string; playerIds: string[]; day: string; startedAt: Date; winners: string[] };
+
+/** Reads the "log a past session" form: date, game, players and winners (or nobody won). */
+export async function readPastForm(form: FormData): Promise<PastInput | { error: string }> {
+	const day = String(form.get('day') ?? '');
+	// Noon keeps the date right in any time zone; the time itself is unknown.
+	const startedAt = stockholmTime(day, '12:00');
+	if (!startedAt) return { error: 'Pick the date it was played' };
+	if (day > dayKey(new Date())) return { error: "The date can't be in the future" };
+	if (day < EARLIEST_PAST_DAY) return { error: 'Check the date: that looks too long ago' };
+
+	const setup = await readSetupForm(form);
+	if ('error' in setup) return setup;
+
+	const nobodyWon = form.has('nobodyWon');
+	const winners = nobodyWon
+		? []
+		: [...new Set(form.getAll('winner').map(String))].filter((id) => setup.playerIds.includes(id));
+	if (!nobodyWon && winners.length === 0) return { error: 'Mark who won, or tick "Nobody won"' };
+
+	return { ...setup, day, startedAt, winners };
+}
+
+/** A finished session of the same game, on the same day, with exactly the same players. */
+export async function findPastDuplicate(input: PastInput): Promise<SessionDetail | null> {
+	const dayMs = 24 * 60 * 60 * 1000;
+	const nearby = await loadSessions(
+		and(
+			eq(sessions.gameId, input.gameId),
+			eq(sessions.status, 'finished'),
+			between(
+				sessions.startedAt,
+				new Date(input.startedAt.getTime() - dayMs),
+				new Date(input.startedAt.getTime() + dayMs)
+			)
+		)
+	);
+	const wanted = [...input.playerIds].sort().join();
+	return (
+		nearby.find(
+			(s) => dayKey(s.startedAt!) === input.day && s.players.map((p) => p.id).sort().join() === wanted
+		) ?? null
+	);
+}
+
+/** Saves a past session as finished, with the date but no start or end time. */
+export async function createPastSession(input: PastInput, createdBy: string) {
+	return db.transaction(async (tx) => {
+		const [session] = await tx
+			.insert(sessions)
+			.values({ gameId: input.gameId, status: 'finished', createdBy, startedAt: input.startedAt })
+			.returning({ id: sessions.id });
+		await tx.insert(sessionPlayers).values(
+			input.playerIds.map((playerId) => ({
+				sessionId: session.id,
+				playerId,
+				isWinner: input.winners.includes(playerId)
+			}))
+		);
+		return session.id;
 	});
 }
 

@@ -3,7 +3,7 @@
 	import { enhance } from '$app/forms';
 	import Avatar from '#lib/components/Avatar.svelte';
 	import { formatTime } from '#lib/format.js';
-	import type { SessionDetail } from '#lib/sessions.js';
+	import { hasNoTimes, type SessionDetail } from '#lib/sessions.js';
 
 	type Props = {
 		session: SessionDetail;
@@ -26,10 +26,12 @@
 	/** Once someone taps a trophy, stop picking winners from the scores. */
 	let winnersTouched = $state(initial.status === 'finished');
 	let nobodyWon = $state(initial.status === 'finished' && !initial.players.some((p) => p.isWinner));
-	let start = $state(formatTime(initial.startedAt ?? initial.createdAt));
-	let end = $state(formatTime(initial.endedAt ?? new Date()));
+	/** Logged afterwards without times: the times stay empty unless someone fills in both. */
+	const noTimes = hasNoTimes(initial);
+	let start = $state(noTimes ? '' : formatTime(initial.startedAt ?? initial.createdAt));
+	let end = $state(noTimes ? '' : formatTime(initial.endedAt ?? new Date()));
 	/** For a running game the end time follows the clock until someone changes it. */
-	let endTouched = $state(initial.endedAt !== null);
+	let endTouched = $state(initial.endedAt !== null || noTimes);
 	let busy = $state(false);
 
 	onMount(() => {
@@ -116,13 +118,16 @@
 	<div class="times">
 		<label class="field">
 			<span>Started</span>
-			<input type="time" name="start" bind:value={start} required />
+			<input type="time" name="start" bind:value={start} required={!noTimes} />
 		</label>
 		<label class="field">
 			<span>Ended</span>
-			<input type="time" name="end" bind:value={end} oninput={() => (endTouched = true)} required />
+			<input type="time" name="end" bind:value={end} oninput={() => (endTouched = true)} required={!noTimes} />
 		</label>
 	</div>
+	{#if noTimes}
+		<p class="muted no-times">Times weren't recorded. Fill in both if you know them.</p>
+	{/if}
 
 	{#if error}
 		<p class="error">{error}</p>
@@ -216,6 +221,10 @@
 		color: var(--text);
 		font: inherit;
 		font-size: 1.1rem;
+	}
+	.no-times {
+		margin: 8px 0 16px;
+		font-size: 0.85rem;
 	}
 	.hint {
 		margin: 12px 0 0;

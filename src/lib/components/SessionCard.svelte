@@ -2,7 +2,7 @@
 	import Avatar from '#lib/components/Avatar.svelte';
 	import GameImage from '#lib/components/GameImage.svelte';
 	import { formatDuration, formatTime } from '#lib/format.js';
-	import { isUnfinished, type SessionDetail } from '#lib/sessions.js';
+	import { hasNoTimes, isUnfinished, type SessionDetail } from '#lib/sessions.js';
 
 	type Props = { session: SessionDetail };
 
@@ -12,6 +12,7 @@
 		if (session.status === 'draft') return 'Not started';
 		if (isUnfinished(session)) return 'Never finished';
 		if (session.status === 'playing') return `Playing since ${formatTime(session.startedAt!)}`;
+		if (hasNoTimes(session)) return 'Time not recorded';
 		const length = session.endedAt!.getTime() - session.startedAt!.getTime();
 		return `${formatTime(session.startedAt!)} · ${formatDuration(length)}`;
 	});

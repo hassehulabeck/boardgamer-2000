@@ -13,6 +13,13 @@ const dayFormat = new Intl.DateTimeFormat('en-GB', {
 	day: 'numeric',
 	month: 'short'
 });
+const dayWithYearFormat = new Intl.DateTimeFormat('en-GB', {
+	timeZone: TIME_ZONE,
+	weekday: 'short',
+	day: 'numeric',
+	month: 'short',
+	year: 'numeric'
+});
 const isoDateFormat = new Intl.DateTimeFormat('sv-SE', {
 	timeZone: TIME_ZONE,
 	year: 'numeric',
@@ -25,9 +32,10 @@ export function formatTime(date: Date): string {
 	return timeFormat.format(date);
 }
 
-/** "Mon 28 Oct" */
-export function formatDay(date: Date): string {
-	return dayFormat.format(date);
+/** "Mon 28 Oct", or "Thu 20 Nov 2025" when it's not this year (old paper records). */
+export function formatDay(date: Date, now = new Date()): string {
+	const sameYear = dayKey(date).slice(0, 4) === dayKey(now).slice(0, 4);
+	return sameYear ? dayFormat.format(date) : dayWithYearFormat.format(date).replace(',', '');
 }
 
 /** "2026-10-28" in Swedish time; used to group sessions by day. */

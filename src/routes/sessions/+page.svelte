@@ -28,6 +28,7 @@
 	<h1>Sessions</h1>
 
 	<a class="button new" href="/sessions/new">+ New session</a>
+	<a class="past" href="/sessions/past">Log a past session (e.g. from paper)</a>
 
 	{#if data.active.length > 0}
 		<section>
@@ -59,6 +60,14 @@
 <style>
 	.new {
 		margin: 16px 0 8px;
+	}
+	.past {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 44px;
+		color: var(--muted);
+		font-size: 0.95rem;
 	}
 	section {
 		margin-top: 24px;
