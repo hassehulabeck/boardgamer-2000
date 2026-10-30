@@ -4,6 +4,7 @@
 	import GameSelect from '#lib/components/GameSelect.svelte';
 	import PlayerSelect from '#lib/components/PlayerSelect.svelte';
 	import { formatDay, stockholmTime } from '#lib/format.js';
+	import { NAME_MAX_LENGTH } from '#lib/players.js';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -14,6 +15,8 @@
 	let winners = $state<string[]>([]);
 	let nobodyWon = $state(false);
 	let busy = $state(false);
+	let newName = $state('');
+	let adding = $state(false);
 	/** Sessions saved during this visit, newest first, so you can keep your place in the pile. */
 	let logged = $state<{ id: string; title: string; day: string }[]>([]);
 
@@ -52,6 +55,7 @@
 	{:else}
 		<form
 			method="post"
+			action="?/save"
 			use:enhance={() => {
 				busy = true;
 				return async ({ result, update }) => {
@@ -91,6 +95,25 @@
 
 			<h2>Who played? <span class="muted">· {playerIds.length}</span></h2>
 			<PlayerSelect players={data.players} bind:selected={playerIds} />
+			<!-- Belongs to the add-player form below; forms can't be nested. -->
+			<div class="add">
+				<input
+					form="add-player"
+					type="text"
+					name="name"
+					bind:value={newName}
+					maxlength={NAME_MAX_LENGTH}
+					placeholder="Someone who hasn't joined yet"
+					aria-label="Name of someone who hasn't joined yet"
+					autocomplete="off"
+				/>
+				<button form="add-player" class="button secondary" disabled={adding || !newName.trim()}>
+					Add
+				</button>
+			</div>
+			{#if form?.addError}
+				<p class="error">{form.addError}</p>
+			{/if}
 
 			<h2>Who won?</h2>
 			{#if chosen.length === 0}
@@ -135,6 +158,23 @@
 				<button class="button" disabled={busy || !ready}>Save session</button>
 			{/if}
 		</form>
+		<form
+			id="add-player"
+			method="post"
+			action="?/addPlayer"
+			use:enhance={() => {
+				adding = true;
+				return async ({ result, update }) => {
+					await update({ reset: false });
+					adding = false;
+					if (result.type === 'success' && result.data?.added) {
+						const added = result.data.added as { id: string };
+						playerIds = [...playerIds, added.id];
+						newName = '';
+					}
+				};
+			}}
+		></form>
 	{/if}
 </main>
 
@@ -160,6 +200,34 @@
 	input[type='date']:focus {
 		outline: none;
 		border-color: var(--accent);
+	}
+	.add {
+		display: flex;
+		gap: 8px;
+		margin-top: 10px;
+	}
+	.add input {
+		flex: 1;
+		min-width: 0;
+		min-height: 48px;
+		padding: 10px 14px;
+		border: 2px solid var(--surface-2);
+		border-radius: 12px;
+		background: var(--surface);
+		color: var(--text);
+		font: inherit;
+		font-size: 1rem; /* 16px+ stops iOS from zooming into the field */
+	}
+	.add input:focus {
+		outline: none;
+		border-color: var(--accent);
+	}
+	.add .button {
+		width: auto;
+		padding-inline: 20px;
+	}
+	.add + .error {
+		margin-top: 8px;
 	}
 	.winners {
 		display: flex;

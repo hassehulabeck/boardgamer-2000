@@ -3,13 +3,19 @@ import { eq } from 'drizzle-orm';
 import { nextColor } from '#lib/colors.js';
 import { linkDevice } from '#lib/server/auth.js';
 import { db, schema } from '#lib/server/db/index.js';
-import { isUniqueViolation, listPlayers, validateColor, validateName } from '#lib/server/players.js';
+import {
+	isUniqueViolation,
+	listPlayers,
+	notJoinedIds,
+	validateColor,
+	validateName
+} from '#lib/server/players.js';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.player) redirect(303, '/');
-	const players = await listPlayers();
-	return { players, suggestedColor: nextColor(players.map((p) => p.color)) };
+	const [players, notJoined] = await Promise.all([listPlayers(), notJoinedIds()]);
+	return { players, notJoined, suggestedColor: nextColor(players.map((p) => p.color)) };
 };
 
 export const actions: Actions = {

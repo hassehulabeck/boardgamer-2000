@@ -143,6 +143,9 @@ Phase 5 is independent of phases 3–4 and can be moved earlier.
       winner(s) or nobody won. Built for typing in the paper records: date and players are
       kept between saves, games are alphabetical, and an exact repeat (same day, game and
       players) asks before saving.
+- [x] Add people who haven't joined yet, from "Log a past session" (name only, automatic
+      color, no phone). On `/welcome` they show as "Not joined yet"; picking the name links
+      the phone and brings the history along.
 - [ ] Register the app with BGG and set `BGG_TOKEN` on Railway (Hans)
 - [x] Set the production push keys (`VAPID_*`) on Railway (Hans)
 
@@ -173,6 +176,8 @@ Phase 5 is independent of phases 3–4 and can be moved earlier.
   `ended_at` is null, which for a finished session means "times unknown". They count for plays
   and wins but not for hours or lengths. Adding both times later turns it into a normal one.
 - 2026-10-29: Dates from another year show the year ("Thu 20 Nov 2025").
+- 2026-10-30: Anyone in the group can add players who haven't joined; no admin role. A
+  "not joined" player is simply one with no device linked.
 
 ## Open questions
 None right now.

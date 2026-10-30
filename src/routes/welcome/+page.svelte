@@ -35,7 +35,9 @@
 	{#if data.players.length > 0}
 		<section>
 			<h2>I'm already in the list</h2>
-			<p class="muted small">For example if you've used the app on another phone or in Safari.</p>
+			<p class="muted small">
+				Maybe someone added you already, or you've used the app on another phone or in Safari.
+			</p>
 			<ul class="players">
 				{#each data.players as player (player.id)}
 					<li>
@@ -48,6 +50,9 @@
 						>
 							<Avatar name={player.name} color={player.color} src={player.avatarUrl} size={56} />
 							<span>{player.name}</span>
+							{#if data.notJoined.includes(player.id)}
+								<span class="new">Not joined yet</span>
+							{/if}
 						</button>
 					</li>
 				{/each}
@@ -131,6 +136,11 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+	}
+	.player .new {
+		margin-top: -6px;
+		color: var(--muted);
+		font-size: 0.75rem;
 	}
 	.player.selected {
 		border-color: var(--accent);
