@@ -27,5 +27,13 @@ export const variables = defineEnvVars({
 	BGG_TOKEN: {
 		description: 'BoardGameGeek XML API token; picture lookup is off without it',
 		schema: optional
+	},
+	GITHUB_TOKEN: {
+		description: 'Fine-grained GitHub token with Issues read/write; the suggestion box is off without it',
+		schema: optional
+	},
+	GITHUB_REPO: {
+		description: 'Repo that suggestions become issues in, as owner/name',
+		schema: (value) => optional(value) ?? 'hassehulabeck/boardgamer-2000'
 	}
 });

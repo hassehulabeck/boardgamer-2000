@@ -77,6 +77,15 @@
 				<small>Who wins, what we play, and when</small>
 			</span>
 		</a>
+		{#if data.feedback}
+			<a class="tile" href="/feedback">
+				<span class="emoji" aria-hidden="true">💡</span>
+				<span>
+					<strong>Suggestion box</strong>
+					<small>Found a bug or have an idea?</small>
+				</span>
+			</a>
+		{/if}
 	</nav>
 
 	<section class="group">

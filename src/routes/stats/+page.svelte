@@ -11,6 +11,40 @@
 	const stats = $derived(data.stats);
 	const maxPlays = $derived(Math.max(0, ...stats.games.map((g) => g.plays)));
 	const maxWins = $derived(Math.max(0, ...stats.players.map((p) => p.wins)));
+
+	// A 1-of-1 player shouldn't top the percent list, so few plays rank below everyone else.
+	const MIN_PLAYS_FOR_RATE = 3;
+	const MODE_KEY = 'bg.winsMode';
+
+	let byRate = $state(false);
+	$effect(() => {
+		try {
+			byRate = localStorage.getItem(MODE_KEY) === 'rate';
+		} catch {
+			// Storage blocked: start on wins every time.
+		}
+	});
+	function setMode(rate: boolean) {
+		byRate = rate;
+		try {
+			localStorage.setItem(MODE_KEY, rate ? 'rate' : 'wins');
+		} catch {
+			// Not remembered, that's fine.
+		}
+	}
+
+	const rate = (p: { wins: number; plays: number }) => (p.plays ? p.wins / p.plays : 0);
+	const winners = $derived(
+		byRate
+			? [...stats.players].sort(
+					(a, b) =>
+						Number(b.plays >= MIN_PLAYS_FOR_RATE) - Number(a.plays >= MIN_PLAYS_FOR_RATE) ||
+						rate(b) - rate(a) ||
+						b.plays - a.plays ||
+						a.player.name.localeCompare(b.player.name)
+				)
+			: stats.players
+	);
 	const maxDay = $derived(Math.max(0, ...stats.weekdays.map((w) => w.sessions)));
 	const busiest = $derived(stats.weekdays.filter((w) => w.sessions > 0));
 </script>
@@ -72,16 +106,30 @@
 		</section>
 
 		<section>
-			<h2>Most wins</h2>
+			<div class="heading">
+				<h2>{byRate ? 'Best win rate' : 'Most wins'}</h2>
+				<div class="mode" role="group" aria-label="Show wins as">
+					<button type="button" class:on={!byRate} aria-pressed={!byRate} onclick={() => setMode(false)}>
+						Wins
+					</button>
+					<button type="button" class:on={byRate} aria-pressed={byRate} onclick={() => setMode(true)}>
+						Win %
+					</button>
+				</div>
+			</div>
 			<ul class="rows">
-				{#each stats.players as record (record.player.id)}
+				{#each winners as record (record.player.id)}
 					<li>
 						<StatRow
 							href="/stats/players/{record.player.id}"
 							title={record.player.name}
-							value={record.wins}
-							bar={{ value: record.wins, max: maxWins }}
-							note="{record.wins} of {record.plays} · {formatPercent(record.wins, record.plays)}"
+							value={byRate ? formatPercent(record.wins, record.plays) : record.wins}
+							bar={byRate
+								? { value: rate(record), max: 1 }
+								: { value: record.wins, max: maxWins }}
+							note={byRate
+								? `${record.wins} of ${record.plays}${record.plays < MIN_PLAYS_FOR_RATE ? ' · too few games to rank' : ''}`
+								: `${record.wins} of ${record.plays} · ${formatPercent(record.wins, record.plays)}`}
 						>
 							{#snippet image()}
 								<Avatar
@@ -156,6 +204,43 @@
 	}
 	.wrapped small {
 		color: var(--muted);
+	}
+	.heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin-bottom: 10px;
+	}
+	.heading h2 {
+		margin: 0;
+	}
+	.mode {
+		display: flex;
+		gap: 2px;
+		padding: 3px;
+		border-radius: 12px;
+		background: var(--surface);
+	}
+	.mode button {
+		min-width: 64px;
+		min-height: 44px;
+		padding: 0 12px;
+		border: 0;
+		border-radius: 9px;
+		background: none;
+		color: var(--muted);
+		font: inherit;
+		font-size: 0.9rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.mode button.on {
+		background: var(--surface-2);
+		color: var(--text);
+	}
+	.mode button:focus-visible {
+		outline: 2px solid var(--accent);
 	}
 	h2 {
 		margin: 0 0 10px;

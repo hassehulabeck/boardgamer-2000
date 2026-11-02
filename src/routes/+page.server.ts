@@ -3,6 +3,7 @@ import { count } from 'drizzle-orm';
 import { LUNCH_SLOTS } from '#lib/availability.js';
 import { listToday, setSlot } from '#lib/server/availability.js';
 import { db, schema } from '#lib/server/db/index.js';
+import { feedbackEnabled } from '#lib/server/feedback.js';
 import { listPlayers } from '#lib/server/players.js';
 import { notifyLunchJoin } from '#lib/server/push.js';
 import { listActiveSessions } from '#lib/server/sessions.js';
@@ -15,7 +16,7 @@ export const load: PageServerLoad = async () => {
 		listToday(),
 		db.select({ gameCount: count() }).from(schema.games)
 	]);
-	return { players, active, lunch, gameCount };
+	return { players, active, lunch, gameCount, feedback: feedbackEnabled };
 };
 
 export const actions: Actions = {
