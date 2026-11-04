@@ -3,7 +3,7 @@
 	import GameImage from '#lib/components/GameImage.svelte';
 	import StatRow from '#lib/components/StatRow.svelte';
 	import StatTile from '#lib/components/StatTile.svelte';
-	import { formatHours, formatPercent } from '#lib/format.js';
+	import { formatDecimal, formatHours, formatPercent } from '#lib/format.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -76,6 +76,36 @@
 			</ul>
 		</section>
 
+		{#if stats.scores.length > 0}
+			<section>
+				<h2>Points</h2>
+				<div class="scores">
+					{#each stats.scores as record (record.game.id)}
+						<div>
+							<a class="score-game" href="/stats/games/{record.game.id}">
+								<GameImage title={record.game.title} src={record.game.imageUrl} size={40} />
+								<strong>{record.game.title}</strong>
+							</a>
+							<div class="tiles">
+								<StatTile value={formatDecimal(record.average)} label="average" />
+								<StatTile
+									value={record.averagePlace === null ? '–' : formatDecimal(record.averagePlace)}
+									label="average place"
+									note={record.averageTableSize === null
+										? undefined
+										: `of ${formatDecimal(record.averageTableSize)} players`}
+								/>
+								<StatTile value={record.scored} label="with points" note="of {games(record.plays)}" />
+								<StatTile value={record.highest} label="highest" />
+								<StatTile value={record.highestWithoutWin ?? '–'} label="highest without winning" />
+								<StatTile value={record.lowest} label="lowest" />
+							</div>
+						</div>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
 		{#if stats.headToHead.length > 0}
 			<section>
 				<h2>Head to head</h2>
@@ -133,6 +163,19 @@
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
+	}
+	.scores {
+		display: grid;
+		gap: 20px;
+	}
+	.score-game {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		min-height: 44px;
+		margin-bottom: 8px;
+		color: inherit;
+		text-decoration: none;
 	}
 	.hint {
 		margin: -4px 0 10px;

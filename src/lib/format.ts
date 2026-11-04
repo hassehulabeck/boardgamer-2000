@@ -122,3 +122,8 @@ export function formatHours(ms: number): string {
 export function formatPercent(part: number, total: number): string {
 	return total === 0 ? '–' : `${Math.round((part / total) * 100)}%`;
 }
+
+/** "41.3": one decimal, for averages. */
+export function formatDecimal(value: number): string {
+	return value.toFixed(1);
+}

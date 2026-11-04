@@ -222,6 +222,70 @@ function startingPlayerAdvantage(list: StatSession[]) {
 
 export type HeadToHead = { opponent: PlayerSummary; together: number; myWins: number; theirWins: number };
 
+/** Null when place can't be told: someone has no score, or the player was alone at the table. */
+function placeInSession(session: StatSession, playerId: string): number | null {
+	const me = session.players.find((p) => p.id === playerId);
+	if (!me || session.players.length < 2 || session.players.some((p) => p.score === null)) return null;
+	// Ties share a place (1, 2, 2, 4), except that a tiebreak winner goes ahead of the others.
+	const ahead = session.players.filter(
+		(p) => p.score! > me.score! || (p.score === me.score && p.isWinner && !me.isWinner)
+	);
+	return ahead.length + 1;
+}
+
+const average = (values: number[]) => values.reduce((a, b) => a + b, 0) / values.length;
+
+export type ScoreRecord = {
+	game: GameSummary;
+	/** Sessions of this game with a score for this player, out of `plays`. */
+	scored: number;
+	plays: number;
+	average: number;
+	highest: number;
+	lowest: number;
+	/** Null if every scored session was won by the player, or had no winner. */
+	highestWithoutWin: number | null;
+	/** Null if no session had scores for the whole table. */
+	averagePlace: number | null;
+	averageTableSize: number | null;
+};
+
+/** Points per game, since scores from different games can't be compared. Most scored first. */
+function scoreRecords(list: StatSession[], playerId: string): ScoreRecord[] {
+	const records: ScoreRecord[] = [];
+	for (const { game, plays } of gameRecords(list)) {
+		const ofGame = list.filter((s) => s.game.id === game.id);
+		const scoredSessions = ofGame.flatMap((session) => {
+			const me = session.players.find((p) => p.id === playerId);
+			return me && me.score !== null ? [{ session, score: me.score, isWinner: me.isWinner }] : [];
+		});
+		if (scoredSessions.length === 0) continue;
+
+		const scores = scoredSessions.map((s) => s.score);
+		// A co-op loss isn't "losing to someone", so it needs another player to have won.
+		const withoutWin = scoredSessions
+			.filter((s) => !s.isWinner && s.session.players.some((p) => p.isWinner))
+			.map((s) => s.score);
+		const placed = ofGame.flatMap((session) => {
+			const place = placeInSession(session, playerId);
+			return place === null ? [] : [{ place, tableSize: session.players.length }];
+		});
+
+		records.push({
+			game,
+			scored: scores.length,
+			plays,
+			average: average(scores),
+			highest: Math.max(...scores),
+			lowest: Math.min(...scores),
+			highestWithoutWin: withoutWin.length ? Math.max(...withoutWin) : null,
+			averagePlace: placed.length ? average(placed.map((p) => p.place)) : null,
+			averageTableSize: placed.length ? average(placed.map((p) => p.tableSize)) : null
+		});
+	}
+	return records.sort((a, b) => b.scored - a.scored);
+}
+
 export async function playerStats(playerId: string) {
 	return summarizePlayer(await loadData(), playerId);
 }
@@ -268,6 +332,7 @@ function summarizePlayer(data: StatData, playerId: string) {
 		started: list.filter((s) => s.startingPlayerId === playerId).length,
 		streaks: { current, best },
 		favorites,
+		scores: scoreRecords(list, playerId),
 		headToHead: [...opponents.values()].sort(
 			(a, b) => b.together - a.together || a.opponent.name.localeCompare(b.opponent.name)
 		),
