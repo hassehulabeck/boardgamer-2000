@@ -47,7 +47,7 @@
 			<GameSelect games={data.games} bind:selected={gameId} />
 
 			<h2>Who's playing? <span class="muted">· {playerIds.length}</span></h2>
-			<PlayerSelect players={data.players} bind:selected={playerIds} />
+			<PlayerSelect players={data.players} bind:selected={playerIds} canAdd />
 
 			{#if form?.duplicate}
 				<div class="duplicate" role="alert">

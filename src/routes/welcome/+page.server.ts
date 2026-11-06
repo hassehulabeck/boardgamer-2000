@@ -52,7 +52,9 @@ export const actions: Actions = {
 			.where(eq(schema.players.id, playerId));
 		if (!player) return fail(404, { claimError: 'That profile no longer exists' });
 
+		// Someone added by name only got an automatic color and no photo: let them see that.
+		const firstPhone = (await notJoinedIds()).includes(player.id);
 		await linkDevice(locals.deviceId, player.id);
-		redirect(303, '/');
+		redirect(303, firstPhone ? '/profile?new' : '/');
 	}
 };

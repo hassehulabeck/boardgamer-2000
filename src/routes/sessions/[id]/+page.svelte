@@ -161,7 +161,7 @@
 				<h3>Game</h3>
 				<GameSelect games={data.games} bind:selected={setupGame} />
 				<h3>Players</h3>
-				<PlayerSelect players={data.players} bind:selected={setupPlayers} />
+				<PlayerSelect players={data.players} bind:selected={setupPlayers} canAdd />
 				{#if form?.setupError}
 					<p class="error">{form.setupError}</p>
 				{/if}
