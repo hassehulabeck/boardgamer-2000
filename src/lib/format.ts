@@ -43,6 +43,16 @@ export function dayKey(date: Date): string {
 	return isoDateFormat.format(date);
 }
 
+/** Noon on a "2026-10-28" day, which is that same day in Swedish time all year round. */
+export function dayKeyDate(key: string): Date {
+	return new Date(`${key}T12:00:00Z`);
+}
+
+/** "Mon 28 Oct" for a "2026-10-28" day key. */
+export function formatDayKey(key: string): string {
+	return dayFormat.format(dayKeyDate(key));
+}
+
 /** "Today", "Yesterday" or "Mon 28 Oct". */
 export function formatRelativeDay(date: Date, now = new Date()): string {
 	const key = dayKey(date);

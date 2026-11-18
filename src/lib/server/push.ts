@@ -2,7 +2,7 @@ import { and, eq, inArray, isNotNull, notInArray } from 'drizzle-orm';
 import webpush from 'web-push';
 import { VAPID_PRIVATE_KEY, VAPID_PUBLIC_KEY } from '$app/env/private';
 import { GAME_ON_COUNT } from '#lib/availability.js';
-import { dayKey } from '#lib/format.js';
+import { dayKey, formatDayKey } from '#lib/format.js';
 import type { PlayerSummary } from '#lib/players.js';
 import { db, schema } from './db/index.js';
 
@@ -91,7 +91,7 @@ export async function sendPush(target: Target, payload: Payload, origin: string)
 // ---------------------------------------------------------------------------------------------
 // Lunch
 
-/** Slots already announced today, so leaving and rejoining doesn't ping everyone again. */
+/** Slots already announced, by day, so leaving and rejoining doesn't ping everyone again. */
 const announced = new Set<string>();
 
 /** "Anna", "Anna and Bo", "Anna, Bo and Cecilia" */
@@ -102,39 +102,43 @@ function names(players: PlayerSummary[]): string {
 
 /**
  * Someone joined a lunch slot. People already in it hear who joined; when the slot reaches
- * GAME_ON_COUNT, everyone else hears that a game is on (once per slot and day).
+ * GAME_ON_COUNT, everyone else hears that a game is on (once per slot and day). Days ahead
+ * are announced right away too, so people can plan for them.
  */
 export async function notifyLunchJoin(
 	joiner: PlayerSummary,
+	day: string,
 	slot: string,
 	inSlot: PlayerSummary[],
 	origin: string
 ) {
 	const others = inSlot.filter((p) => p.id !== joiner.id);
-	const tag = `lunch-${slot}`;
+	const when = day === dayKey(new Date()) ? `at ${slot}` : `at ${slot} on ${formatDayKey(day)}`;
+	const url = `/?day=${day}`;
+	const tag = `lunch-${day}-${slot}`;
 	const sends = [
 		sendPush(
 			{ playerIds: others.map((p) => p.id) },
 			{
-				title: `${joiner.name} is in at ${slot}`,
-				body: `${inSlot.length} people are coming at ${slot}: ${names(inSlot)}`,
-				url: '/',
+				title: `${joiner.name} is in ${when}`,
+				body: `${inSlot.length} people are coming ${when}: ${names(inSlot)}`,
+				url,
 				tag
 			},
 			origin
 		)
 	];
 
-	const key = `${dayKey(new Date())} ${slot}`;
+	const key = `${day} ${slot}`;
 	if (inSlot.length >= GAME_ON_COUNT && !announced.has(key)) {
 		announced.add(key);
 		sends.push(
 			sendPush(
 				{ allExcept: inSlot.map((p) => p.id) },
 				{
-					title: `Game on at ${slot} 🎲`,
-					body: `${names(inSlot)} are playing at ${slot}. Join them?`,
-					url: '/',
+					title: `Game on ${when} 🎲`,
+					body: `${names(inSlot)} are playing ${when}. Join them?`,
+					url,
 					tag
 				},
 				origin

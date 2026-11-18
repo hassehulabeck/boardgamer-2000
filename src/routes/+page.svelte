@@ -39,7 +39,13 @@
 		</section>
 	{/if}
 
-	<LunchSlots slots={data.lunch} meId={data.me?.id ?? null} />
+	<LunchSlots
+		slots={data.lunch}
+		meId={data.me?.id ?? null}
+		day={data.lunchDay}
+		days={data.lunchDays}
+		today={data.today}
+	/>
 
 	<nav>
 		<a class="tile primary" href="/sessions/new">
